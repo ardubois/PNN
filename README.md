@@ -1,5 +1,5 @@
 # NN
 
-**NNs in elixir**
+NNs in elixir
 
 
