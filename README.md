@@ -1,6 +1,6 @@
 # NN
 
-**TODO: Add description**
+**NNs in elixir**
 
 ## Installation
 
