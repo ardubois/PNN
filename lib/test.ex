@@ -102,12 +102,13 @@ IO.puts ("weights 2: #{Matrex.sum(w2)}")
 #IO.puts("inicio")
 #{newnet,error,acc} = NN.trainNN_batch(10,100,images, nn, labels, alpha)
 
-{newnet,error,acc} = NN.loop_batch(3000,10,100,images, nn, labels, alpha)
+{newnet,error,acc} = NN.loop_batch(100,10,100,images, nn, labels, alpha)
+
+#{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[100,1000,images,nn,labels,alpha])
 
 
-
-IO.puts error
-IO.puts acc
+#IO.puts error
+#IO.puts acc
 
 #timef = Time.diff(time2,time1)
 

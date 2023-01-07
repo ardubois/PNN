@@ -52,10 +52,11 @@ defmodule NN do
     fitWeights(Matrex.random(x, y))
    end
   def check_correct(1,output,target) do
-    if (Matrex.argmax(output[1])==Matrex.argmax(target[1])) do 1 else 0 end
+    if (Matrex.argmax(Matrex.row(output,1))==Matrex.argmax(Matrex.row(target,1))) do 1 else 0 end
   end
   def check_correct(n,output,target) do
-    r1=if (Matrex.argmax(output[n])==Matrex.argmax(target[n])) do 1 else 0 end
+    #IO.puts n
+    r1= if (Matrex.argmax(Matrex.row(output,n))==Matrex.argmax(Matrex.row(target,n))) do 1 else 0 end
     r2 = check_correct(n-1,output,target)
     r1+r2
   end
@@ -68,7 +69,9 @@ defmodule NN do
     #{rdiff,cdiff}=Matrex.size(diff)
     #IO.puts ("row d: #{rdiff}   col: #{cdiff}")
     finalDerivative = Matrex.divide(diff,batchsize)
+
     error =  Matrex.sum(Matrex.square(diff))
+
     correct = check_correct(batchsize,o,target)
     newWeights = genNewWeights(weights_l,lr,input,finalDerivative)
     #IO.puts "Weights final 2: #{Matrex.sum(newWeights)}"
