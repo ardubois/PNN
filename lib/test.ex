@@ -97,12 +97,12 @@ _target1 = labels[1]
 #{l2,c2}=Matrex.size(w2)
 #IO.puts "w1 = #{l1} x #{c1}"
 #IO.puts "w1 = #{l2} x #{c2}"
-#IO.puts ("weights 1: #{Matrex.sum(w1)}")
-#IO.puts ("weights 2: #{Matrex.sum(w2)}")
+IO.puts ("weights 1: #{Matrex.sum(w1)}")
+IO.puts ("weights 2: #{Matrex.sum(w2)}")
 #IO.puts("inicio")
 #{newnet,error,acc} = NN.trainNN_batch(10,100,images, nn, labels, alpha)
 
-{newnet,error,acc} = NN.loop_batch(10,10,100,images, nn, labels, alpha)
+{newnet,error,acc} = NN.loop_batch(3000,10,100,images, nn, labels, alpha)
 
 
 

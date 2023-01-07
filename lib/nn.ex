@@ -71,7 +71,7 @@ defmodule NN do
     error =  Matrex.sum(Matrex.square(diff))
     correct = check_correct(batchsize,o,target)
     newWeights = genNewWeights(weights_l,lr,input,finalDerivative)
-    #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
+    #IO.puts "Weights final 2: #{Matrex.sum(newWeights)}"
     nextLayerD = Matrex.dot(finalDerivative,Matrex.transpose(weights_l))
     {[newWeights],nextLayerD,error,correct}
   end
@@ -86,7 +86,7 @@ defmodule NN do
     myDeriv = Matrex.multiply(wD,relu2deriv(o))
     #IO.inspect(relu2deriv(o))
     newWeights = genNewWeights(w,lr,input,myDeriv)
-    #IO.puts "Weights final 2: #{Matrex.sum(newWeights)}"
+    #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
     #IO.inspect(Nx.sum(newWeights))
     #nextLayerD = Nx.dot(myDeriv,Nx.transpose(w))
     {[newWeights|net],0,error,correct}
@@ -147,17 +147,17 @@ defmodule NN do
   def trainNN_batch(1,bsize,input,weights,target,lr) do
     {il,ic}=Matrex.size(input)
     {tl,tc}=Matrex.size(target)
+    #IO.puts "lac #{1}"
     inputb = Matrex.submatrix(input,1..bsize,1..ic)
     targetb = Matrex.submatrix(target,1..bsize,1..tc)
     {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
     #IO.puts "error: #{error} accuracy: #{acc}"
-    #tasks = Enum.map(list, fn({i1,t1}) -> Task.async(fn -> NN.runNet(i1,weights,t1,lr)end) end)
-    #results = Enum.map(tasks,&Task.await/1)
     {newNet,error,acc}
   end
   def trainNN_batch(n,bsize,input,weights,target,lr) do
     {il,ic}=Matrex.size(input)
     {tl,tc}=Matrex.size(target)
+    #IO.puts "lac #{n}"
     inputb = Matrex.submatrix(input,1..bsize,1..ic)
     targetb = Matrex.submatrix(target,1..bsize,1..tc)
     {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
