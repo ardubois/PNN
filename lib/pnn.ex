@@ -4,14 +4,14 @@ defmodule PNN do
  import NN
  def loopBatch(1,nb,ntrain,slice,input,nn,target,lr) do
   {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr)
-  #IO.puts("I #{1} error: #{error/ntrain} Acc: #{correct/ntrain}")
+  IO.puts("I #{1} error: #{error/ntrain} Acc: #{correct/ntrain}")
   {newnet,error,correct}
 end
 def loopBatch(n,nb,ntrain, slice,input,nn,target,lr) do
   {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr)
  # IO.puts "Error"
   #IO.inspect error
-  #IO.puts("I #{n} error: #{(error)/ntrain} Acc: #{correct/ntrain}")
+  IO.puts("I #{n} error: #{(error)/ntrain} Acc: #{correct/ntrain}")
   r = loopBatch(n-1,nb,ntrain,slice,input,newnet,target,lr)
   r
 end
@@ -138,7 +138,7 @@ def trainPBatch(1,ntrain,slice,input,nn,target,lr) do
   end
   def run_batchWL(size,slice,input,weights,target,lr) do
     list = slice_entries(size,slice,input,target)
-    tasks = Enum.map(list, fn({i1,t1}) -> WL.send_job({size,i1,weights,t1,lr}) end)
+    tasks = Enum.map(list, fn({i1,t1}) -> WL.send_job({size,slice,i1,weights,t1,lr}) end)
     #results = Enum.map(tasks,&Task.await/1)
     [hr|tr] = tasks
     r1 = WL.get_result(hr)

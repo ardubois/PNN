@@ -27,30 +27,34 @@ import PNN
     pid = spawn_link(fn -> work_list_server(0) end)
     Process.register(pid, :work_list_server)
   end
-  def worker() do
+  def worker(do_work) do
     #send({:work_list_server,:"main@Satanas-666"}, {:idle, self()})
     send(:work_list_server, {:idle, self()})
     receive do
-       {:work, clientpid, workid,{size ,input1,weights,target1,lr}} ->
-              {net,wd,error,acc}=NN.runNet( input1,weights,target1,lr)
-              newNet = PNN.divNN(net,size)
-              nwd = wd/size
-              nerror = error/size
-              nacc = acc/size
-              send(clientpid,{:workresult, workid, {newNet,nwd,nerror,nacc}})
-              worker()
+       {:work, clientpid, workid,args} ->
+              result = do_work.(args)
+              send(clientpid,{:workresult, workid, result})
+              worker(do_work)
     end
   end
-  def init_workers(1) do
-    spawn_link(fn -> WL.worker()end)
+  def nn_work({bsize,slice ,input1,weights,target1,lr}) do
+      {net,wd,error,acc}=NN.run_net_batch(bsize, input1,weights,target1,lr)
+      newNet = PNN.divNN(net,bsize)
+      nwd = wd/bsize
+      nerror = error/bsize
+      nacc = acc/bsize
+      {newNet,nwd,nerror,nacc}
   end
-  def init_workers(n) do
-    spawn_link(fn -> WL.worker()end)
-    init_workers(n-1)
+  def init_workers(1,worker) do
+    spawn_link(fn -> WL.worker(worker)end)
+  end
+  def init_workers(n,worker) do
+    spawn_link(fn -> WL.worker(worker)end)
+    init_workers(n-1,worker)
   end
   def testSystem(n)do
     WL.init_work_list_server()
-    init_workers(n)
+    init_workers(n,&WL.nn_work/1)
    # Node.spawn_link(:"core1@Satanas-666",fn -> WL.worker()end)
    # Node.spawn_link(:"core2@Satanas-666",fn -> WL.worker()end)
    # Node.spawn_link(:"core3@Satanas-666",fn -> WL.worker()end)

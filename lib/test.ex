@@ -32,7 +32,7 @@ nn = [w0_,w1_]
 inputSize = 784 #pixels per image
 hiddenSize = 40#720#360#40#360#180#40
 outputSize = 10
-alpha = 0.001
+alpha =  0.005
 #nn = [NN.newDenseLayer(inputSize,hiddenSize,:relu),
 #      NN.newDenseLayer(hiddenSize,outputSize,:relu)]
 
@@ -79,32 +79,38 @@ _target1 = labels[1]
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[100,images,nn,labels,alpha])
 #IO.puts ("time: #{time/(1_000_000)}")
 
-#WL.testSystem(5)
+WL.testSystem(8)
 
-#{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[100,1000,images,nn,labels,alpha])
+{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[100,1000,images,nn,labels,alpha])
 
-#{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[100,10,10,10,images,nn,labels,alpha])
+#{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[100,10,1,100,images,nn,labels,alpha])
+
+
+#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[100,10,100,images, nn, labels, alpha])
+
+
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])
 
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[1000,images,nn,labels,alpha])
 
-#IO.puts ("time: #{time/(1_000_000)}")
+IO.puts ("time: #{time/(1_000_000)}")
 
 #{newnet,wd,error,acc}=NN.run_batch(100,images,nn,labels,alpha)
-[w1,w2]= nn
+#[w1,w2]= nn
 
 #{l1,c1}=Matrex.size(w1)
 #{l2,c2}=Matrex.size(w2)
 #IO.puts "w1 = #{l1} x #{c1}"
 #IO.puts "w1 = #{l2} x #{c2}"
-IO.puts ("weights 1: #{Matrex.sum(w1)}")
-IO.puts ("weights 2: #{Matrex.sum(w2)}")
+#IO.puts ("weights 1: #{Matrex.sum(w1)}")
+#IO.puts ("weights 2: #{Matrex.sum(w2)}")
 #IO.puts("inicio")
 #{newnet,error,acc} = NN.trainNN_batch(10,100,images, nn, labels, alpha)
 
-{newnet,error,acc} = NN.loop_batch(100,10,100,images, nn, labels, alpha)
+#{newnet,error,acc} = NN.loop_batch(1000,1000,1,images, nn, labels, alpha)
 
 #{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[100,1000,images,nn,labels,alpha])
+#IO.puts ("time: #{time/(1_000_000)}")
 
 
 #IO.puts error
