@@ -30,7 +30,7 @@ w1_ = Matrex.load("w12.csv")
 nn = [w0_,w1_]
 
 inputSize = 784 #pixels per image
-hiddenSize = 40#720#360#40#360#180#40
+hiddenSize = 40#180#720#360#40#360#180#40
 outputSize = 10
 alpha =  0.005
 #nn = [NN.newDenseLayer(inputSize,hiddenSize,:relu),
@@ -79,14 +79,15 @@ _target1 = labels[1]
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[100,images,nn,labels,alpha])
 #IO.puts ("time: #{time/(1_000_000)}")
 
-WL.testSystem(8)
+WL.testSystem(5)
 
-{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[100,1000,images,nn,labels,alpha])
+#{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[100,1000,images,nn,labels,alpha])
 
-#{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[100,10,1,100,images,nn,labels,alpha])
+{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[500,10,4,25,images,nn,labels,alpha])
 
+#I 1 error: 0.2870218315124512 Acc: 0.904
 
-#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[100,10,100,images, nn, labels, alpha])
+#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[500,10,100,images, nn, labels, alpha])
 
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])

@@ -4,26 +4,31 @@ defmodule PNN do
  import NN
  def loopBatch(1,nb,ntrain,slice,input,nn,target,lr) do
   {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr)
-  IO.puts("I #{1} error: #{error/ntrain} Acc: #{correct/ntrain}")
+  IO.puts("I #{1} error: #{error/(nb*ntrain*slice)} Acc: #{correct/(nb*ntrain*slice)}")
   {newnet,error,correct}
 end
 def loopBatch(n,nb,ntrain, slice,input,nn,target,lr) do
   {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr)
  # IO.puts "Error"
   #IO.inspect error
-  IO.puts("I #{n} error: #{(error)/ntrain} Acc: #{correct/ntrain}")
+  #raise "hell"
+  IO.puts("I #{n} error: #{(error)/(nb*ntrain*slice)} Acc: #{correct/(nb*ntrain*slice)}")
   r = loopBatch(n-1,nb,ntrain,slice,input,newnet,target,lr)
   r
 end
 def trainPBatch(1,ntrain,slice,input,nn,target,lr) do
     {newnet,wd1,error,correct}= run_batchWL(ntrain,slice,input,nn,target,lr)
-    #IO.puts("I #{1} error: #{error/ntrain} Acc: #{correct/ntrain}")
+    #IO.puts("I #{1} error: #{error/(ntrain*slice)} Acc: #{correct/(ntrain*slice)}")
     {newnet,wd1,error,correct}
   end
   def trainPBatch(n,ntrain, slice,input,nn,target,lr) do
     {newnet,wd1,error,correct}=run_batchWL(ntrain,slice,input,nn,target,lr)
    # IO.puts "Error"
     #IO.inspect error
+    #IO.puts("I #{n} error: #{error} Acc: #{correct}")
+    #[w1,w2] = newnet
+    #IO.puts "w1: #{Matrex.sum(w1)}    w2: #{Matrex.sum(w2)}"
+
     {il,ic}=Matrex.size(input)
     {tl,tc}=Matrex.size(target)
  #   IO.inspect {il,ic}
@@ -31,8 +36,11 @@ def trainPBatch(1,ntrain,slice,input,nn,target,lr) do
     restinput = Matrex.submatrix(input,((ntrain*slice)+1)..il,1..ic)
     resttarget = Matrex.submatrix(target,((ntrain*slice)+1)..tl,1..tc)
     #IO.puts("I #{n} error: #{(error)/ntrain} Acc: #{correct/ntrain}")
-    r = trainPBatch(n-1,ntrain,slice,restinput,newnet,resttarget,lr)
-    r
+    {finalnet,wd2,nerror,nacc} = trainPBatch(n-1,ntrain,slice,restinput,newnet,resttarget,lr)
+    finalerror = error + nerror
+    finalacc = correct + nacc
+    #IO.puts "error: #{finalerror} accuracy: #{finalacc}"
+    {finalnet,wd2,finalerror,finalacc}
   end
   def dotP(vet,matrix) do
     #{r_,c} = Nx.shape(matrix)
@@ -140,9 +148,9 @@ def trainPBatch(1,ntrain,slice,input,nn,target,lr) do
     list = slice_entries(size,slice,input,target)
     tasks = Enum.map(list, fn({i1,t1}) -> WL.send_job({size,slice,i1,weights,t1,lr}) end)
     #results = Enum.map(tasks,&Task.await/1)
-    [hr|tr] = tasks
-    r1 = WL.get_result(hr)
-    List.foldr(tr, r1, fn(task,{nn2,wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = WL.get_result task
+    #[hr|tr] = tasks
+    #{nn_,wd_,erro_,acc_} = WL.get_result(hr)
+    List.foldr(tasks, {weights,0,0,0}, fn(task,{nn2,wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = WL.get_result task
                                                         #IO.inspect erro2
                                                         #IO.inspect acc2
                                                         #IO.inspect erro1

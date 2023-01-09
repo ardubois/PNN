@@ -38,12 +38,13 @@ import PNN
     end
   end
   def nn_work({bsize,slice ,input1,weights,target1,lr}) do
-      {net,wd,error,acc}=NN.run_net_batch(bsize, input1,weights,target1,lr)
-      newNet = PNN.divNN(net,bsize)
-      nwd = wd/bsize
-      nerror = error/bsize
-      nacc = acc/bsize
-      {newNet,nwd,nerror,nacc}
+      {net,wd,error,acc}=NN.run_net_batch_par((bsize*slice), input1,weights,target1,lr)
+      #newNet = PNN.divNN(net,(bsize))
+      nwd = wd
+      nerror = error
+      nacc = acc
+      #IO.puts bsize
+      {net,nwd,nerror,nacc}
   end
   def init_workers(1,worker) do
     spawn_link(fn -> WL.worker(worker)end)

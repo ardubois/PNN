@@ -72,6 +72,9 @@ defmodule NN do
 
     error =  Matrex.sum(Matrex.square(diff))
 
+
+    #{l,_c} = Matrex.size(target)
+
     correct = check_correct(batchsize,o,target)
     newWeights = genNewWeights(weights_l,lr,input,finalDerivative)
     #IO.puts "Weights final 2: #{Matrex.sum(newWeights)}"
@@ -93,6 +96,46 @@ defmodule NN do
     #IO.inspect(Nx.sum(newWeights))
     #nextLayerD = Nx.dot(myDeriv,Nx.transpose(w))
     {[newWeights|net],0,error,correct}
+  end
+  def run_net_batch_par(batchsize,input,[weights_l],target,lr) do
+    #IO.inspect(weights_l)
+    #raise "hell"
+    #o = dotPSize(5,input,weights_l)
+    o = Matrex.dot(input,weights_l)
+    diff = Matrex.subtract(target,o)
+    #{rdiff,cdiff}=Matrex.size(diff)
+    #IO.puts ("row d: #{rdiff}   col: #{cdiff}")
+    finalDerivative = Matrex.divide(diff,batchsize)
+
+    error =  Matrex.sum(Matrex.square(diff))
+
+
+    {l,_c} = Matrex.size(target)
+
+    correct = check_correct(l,o,target)
+    newWeights = gen_new_weights_par(lr,input,finalDerivative)
+    #IO.puts "Weights final 2: #{Matrex.sum(newWeights)}"
+    nextLayerD = Matrex.dot(finalDerivative,Matrex.transpose(weights_l))
+    {[newWeights],nextLayerD,error,correct}
+  end
+  def run_net_batch_par(batchsize,input,[w|tl],target,lr) do
+    #o =  relu(Matrex.dot(input,w))
+    #IO.inspect(w)
+    #raise "hell"
+    o =  relu(Matrex.dot(input,w))
+    #IO.inspect o
+    #raise "oi"
+    {net,wD,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
+    myDeriv = Matrex.multiply(wD,relu2deriv(o))
+    #IO.inspect(relu2deriv(o))
+    newWeights = gen_new_weights_par(lr,input,myDeriv)
+    #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
+    #IO.inspect(Nx.sum(newWeights))
+    #nextLayerD = Nx.dot(myDeriv,Nx.transpose(w))
+    {[newWeights|net],0,error,correct}
+  end
+  def gen_new_weights_par(lr,layer,der) do
+    Matrex.multiply(lr,Matrex.dot(Matrex.transpose(layer),der))
   end
   def trainNN(1, input, nn,target,lr) do
     input1 = Matrex.row(input,1)
@@ -143,7 +186,8 @@ defmodule NN do
   end
   def loop_batch(n,ntrain, bsize, input,nn,target,lr) do
     {newnet,error,correct}=trainNN_batch(ntrain, bsize,input,nn,target,lr)
-    IO.puts("I #{1} error: #{error/(ntrain*bsize)} Acc: #{correct/(ntrain*bsize)}")
+    #raise "hell"
+    IO.puts("I #{n} error: #{error/(ntrain*bsize)} Acc: #{correct/(ntrain*bsize)}")
     r = loop_batch(n-1,ntrain,bsize,input,newnet,target,lr)
     r
   end
@@ -165,6 +209,9 @@ defmodule NN do
     targetb = Matrex.submatrix(target,1..bsize,1..tc)
     {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
     #IO.puts "error: #{error} accuracy: #{acc}"
+    #[w1,w2] = newNet
+    #IO.puts "w1: #{Matrex.sum(w1)}    w2: #{Matrex.sum(w2)}"
+    #raise "hell"
     inputr = Matrex.submatrix(input,(bsize+1)..il,1..ic)
     targetr = Matrex.submatrix(target,(bsize+1)..tl,1..tc)
     {finalnet,nerror,nacc}= trainNN_batch(n-1,bsize,inputr,newNet,targetr,lr)
