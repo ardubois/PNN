@@ -25,22 +25,51 @@ import PNN
 
 
 
-w0_ = Matrex.load("w01.csv")
-w1_ = Matrex.load("w12.csv")
-nn = [w0_,w1_]
+#w0_ = Matrex.load("w01.csv")
+#w1_ = Matrex.load("w12.csv")
+#nn = [w0_,w1_]
 
 inputSize = 784 #pixels per image
-hiddenSize = 40#180#720#360#40#360#180#40
+hiddenSize = 180#40#360#180#40
 outputSize = 10
-alpha =  0.005
+alpha =  0.01
 #nn = [NN.newDenseLayer(inputSize,hiddenSize,:relu),
-#      NN.newDenseLayer(hiddenSize,outputSize,:relu)]
+ #     NN.newDenseLayer(hiddenSize,outputSize,:relu)]
+
+#nn = [NN.newDenseLayer(inputSize,256,:relu),
+#      NN.newDenseLayer(256,180,:relu),
+#      NN.newDenseLayer(180,40,:relu),
+#      NN.newDenseLayer(40,10,:relu)]
+    #  NN.newDenseLayer(1500,1000,:relu),
+     # NN.newDenseLayer(1000,500,:relu),
+     # NN.newDenseLayer(500,10,:relu)]
+
+#nn = [NN.newDenseLayer(inputSize,256,:relu),
+ #     NN.newDenseLayer(256,40,:relu),
+  #    NN.newDenseLayer(40,10,:relu)]
+
+
+nn = [NN.newDenseLayer(inputSize,500,:relu),
+     NN.newDenseLayer(500,180,:relu),
+     NN.newDenseLayer(180,40,:relu),
+     NN.newDenseLayer(40,10,:relu)]
 
 #[wh|wt] =nn
 
 
-images = Matrex.load("imgMNIST.csv")
-labels = Matrex.load("tarMNIST.csv")
+#images = Matrex.load("mnistfullIMG.csv")
+#labels = Matrex.load("mnistfullLAB.csv")
+
+
+
+images = Matrex.load("img5000.csv")
+labels = Matrex.load("lab5000.csv")
+IO.puts "finish loading"
+
+#images = Matrex.submatrix(images,1..1000,1..784)
+#labels = Matrex.submatrix(labels,1..1000,1..10)
+#images = Matrex.load("fashionIMG.csv")
+#labels = Matrex.load("fashionLAB.csv")
 
 _input1 = images[1]
 _target1 = labels[1]
@@ -79,15 +108,14 @@ _target1 = labels[1]
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[100,images,nn,labels,alpha])
 #IO.puts ("time: #{time/(1_000_000)}")
 
-WL.testSystem(5)
+WL.testSystem(8)
 
-#{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[100,1000,images,nn,labels,alpha])
+#{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[3,60000,images,nn,labels,alpha])
 
-{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[500,10,4,25,images,nn,labels,alpha])
+#{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[10,50,10,10,images,nn,labels,alpha])
 
-#I 1 error: 0.2870218315124512 Acc: 0.904
 
-#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[500,10,100,images, nn, labels, alpha])
+{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[10,50,100,images, nn, labels, alpha])
 
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])

@@ -14,6 +14,12 @@ defmodule NN do
     Matrex.apply(output,fn(n)-> if (n>0) do 1 else 0 end end)
     #Nx.greater(output,0)
   end
+  def sigmoid(x) do
+     Matrex.apply(x,:sigmoid)
+  end
+  def sig2deriv(output) do
+    Matrex.multiply(output,Matrex.subtract(1,output))
+  end
   def runNet(input,[weights_l],target,lr) do
     #IO.inspect(weights_l)
     #raise "hell"
@@ -35,18 +41,20 @@ defmodule NN do
     #raise "oi"
     {net,wD,error,correct} = runNet(o,tl,target,lr)
     myDeriv = Matrex.multiply(wD,relu2deriv(o))
-    #IO.inspect(relu2deriv(o))
     newWeights = genNewWeights(w,lr,input,myDeriv)
     #IO.inspect(Nx.sum(newWeights))
-    #nextLayerD = Nx.dot(myDeriv,Nx.transpose(w))
+    nextLayerD = Matrex.dot(myDeriv,Matrex.transpose(w))
     #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
-    {[newWeights|net],0,error,correct}
+    {[newWeights|net],nextLayerD,error,correct}
   end
   def genNewWeights(weights,lr,layer,der) do
     Matrex.add(weights,Matrex.multiply(lr,Matrex.dot(Matrex.transpose(layer),der)))
   end
   def fitWeights(w) do
-    Matrex.multiply(0.02,Matrex.subtract(w,0.1))
+    #r=Matrex.multiply(0.02,Matrex.subtract(w,0.01))
+    r=Matrex.subtract(Matrex.multiply(2,w),1)
+    #IO.inspect r
+    r
   end
   def newDenseLayer(x,y,type) do
     fitWeights(Matrex.random(x, y))
@@ -85,17 +93,19 @@ defmodule NN do
     #o =  relu(Matrex.dot(input,w))
     #IO.inspect(w)
     #raise "hell"
-    o =  relu(Matrex.dot(input,w))
+    #o =  relu(Matrex.dot(input,w))
+    o =  NN.sigmoid(Matrex.dot(input,w))
     #IO.inspect o
     #raise "oi"
     {net,wD,error,correct} = run_net_batch(batchsize,o,tl,target,lr)
-    myDeriv = Matrex.multiply(wD,relu2deriv(o))
+    #myDeriv = Matrex.multiply(wD,relu2deriv(o))
+    myDeriv = Matrex.multiply(wD,sig2deriv(o))
     #IO.inspect(relu2deriv(o))
     newWeights = genNewWeights(w,lr,input,myDeriv)
     #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
     #IO.inspect(Nx.sum(newWeights))
-    #nextLayerD = Nx.dot(myDeriv,Nx.transpose(w))
-    {[newWeights|net],0,error,correct}
+    nextLayerD = Matrex.dot(myDeriv,Matrex.transpose(w))
+    {[newWeights|net],nextLayerD,error,correct}
   end
   def run_net_batch_par(batchsize,input,[weights_l],target,lr) do
     #IO.inspect(weights_l)
@@ -122,17 +132,19 @@ defmodule NN do
     #o =  relu(Matrex.dot(input,w))
     #IO.inspect(w)
     #raise "hell"
-    o =  relu(Matrex.dot(input,w))
+    #o =  relu(Matrex.dot(input,w))
+    o =  NN.sigmoid(Matrex.dot(input,w))
     #IO.inspect o
     #raise "oi"
     {net,wD,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
-    myDeriv = Matrex.multiply(wD,relu2deriv(o))
+    #myDeriv = Matrex.multiply(wD,relu2deriv(o))
+    myDeriv = Matrex.multiply(wD,sig2deriv(o))
     #IO.inspect(relu2deriv(o))
     newWeights = gen_new_weights_par(lr,input,myDeriv)
     #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
     #IO.inspect(Nx.sum(newWeights))
-    #nextLayerD = Nx.dot(myDeriv,Nx.transpose(w))
-    {[newWeights|net],0,error,correct}
+    nextLayerD = Matrex.dot(myDeriv,Matrex.transpose(w))
+    {[newWeights|net],nextLayerD,error,correct}
   end
   def gen_new_weights_par(lr,layer,der) do
     Matrex.multiply(lr,Matrex.dot(Matrex.transpose(layer),der))
