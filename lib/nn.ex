@@ -26,6 +26,8 @@ defmodule NN do
     #o = dotPSize(5,input,weights_l)
     o = Matrex.dot(input,weights_l)
     finalDerivative = Matrex.subtract(target,o)
+    #finalDerivative = Matrex.multiply(o,Matrex.subtract(target,o))
+
     error =  Matrex.sum(Matrex.square(finalDerivative))
     correct = if (Matrex.argmax(o)==Matrex.argmax(target)) do 1 else 0 end
     newWeights = genNewWeights(weights_l,lr,input,finalDerivative)
@@ -51,8 +53,8 @@ defmodule NN do
     Matrex.add(weights,Matrex.multiply(lr,Matrex.dot(Matrex.transpose(layer),der)))
   end
   def fitWeights(w) do
-    #r=Matrex.multiply(0.02,Matrex.subtract(w,0.01))
-    r=Matrex.subtract(Matrex.multiply(2,w),1)
+    r=Matrex.subtract(Matrex.multiply(0.02,w),0.01)
+    #r=Matrex.subtract(Matrex.multiply(2,w),1)
     #IO.inspect r
     r
   end
@@ -68,6 +70,31 @@ defmodule NN do
     r2 = check_correct(n-1,output,target)
     r1+r2
   end
+  def predict(input,[w]) do
+    Matrex.dot(input,w)
+  end
+  def predict(input,[w|t]) do
+    o =  relu(Matrex.dot(input,w))
+    predict(o,t)
+  end
+  def test(1,input,target,nn) do
+    i1 = Matrex.row(input,1)
+    t1 = Matrex.row(target,1)
+    o = predict(i1,nn)
+    if (Matrex.argmax(t1)==Matrex.argmax(o)) do 1 else 0 end
+  end
+  def test(n,input,target,nn) do
+    i1 = Matrex.row(input,n)
+    t1 = Matrex.row(target,n)
+    o = predict(i1,nn)
+    c1 = if (Matrex.argmax(t1)==Matrex.argmax(o)) do 1 else 0 end
+    c2 = test(n-1,input,target,nn)
+    c1 + c2
+  end
+  def run_test(size,input,target,nn)do
+    correct = test(size,input,target,nn)
+    IO.puts ("Test accuracy: #{ correct/size}")
+  end
   def run_net_batch(batchsize,input,[weights_l],target,lr) do
     #IO.inspect(weights_l)
     #raise "hell"
@@ -77,6 +104,7 @@ defmodule NN do
     #{rdiff,cdiff}=Matrex.size(diff)
     #IO.puts ("row d: #{rdiff}   col: #{cdiff}")
     finalDerivative = Matrex.divide(diff,batchsize)
+    #finalDerivative = Matrex.divide(Matrex.multiply(o,diff),batchsize)
 
     error =  Matrex.sum(Matrex.square(diff))
 
@@ -93,13 +121,13 @@ defmodule NN do
     #o =  relu(Matrex.dot(input,w))
     #IO.inspect(w)
     #raise "hell"
-    #o =  relu(Matrex.dot(input,w))
-    o =  NN.sigmoid(Matrex.dot(input,w))
+    o =  relu(Matrex.dot(input,w))
+    #o =  NN.sigmoid(Matrex.dot(input,w))
     #IO.inspect o
     #raise "oi"
     {net,wD,error,correct} = run_net_batch(batchsize,o,tl,target,lr)
-    #myDeriv = Matrex.multiply(wD,relu2deriv(o))
-    myDeriv = Matrex.multiply(wD,sig2deriv(o))
+    myDeriv = Matrex.multiply(wD,relu2deriv(o))
+    #myDeriv = Matrex.multiply(wD,sig2deriv(o))
     #IO.inspect(relu2deriv(o))
     newWeights = genNewWeights(w,lr,input,myDeriv)
     #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
@@ -116,6 +144,7 @@ defmodule NN do
     #{rdiff,cdiff}=Matrex.size(diff)
     #IO.puts ("row d: #{rdiff}   col: #{cdiff}")
     finalDerivative = Matrex.divide(diff,batchsize)
+    #finalDerivative = Matrex.divide(Matrex.multiply(o,diff),batchsize)
 
     error =  Matrex.sum(Matrex.square(diff))
 
@@ -132,13 +161,13 @@ defmodule NN do
     #o =  relu(Matrex.dot(input,w))
     #IO.inspect(w)
     #raise "hell"
-    #o =  relu(Matrex.dot(input,w))
-    o =  NN.sigmoid(Matrex.dot(input,w))
+    o =  relu(Matrex.dot(input,w))
+    #o =  NN.sigmoid(Matrex.dot(input,w))
     #IO.inspect o
     #raise "oi"
     {net,wD,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
-    #myDeriv = Matrex.multiply(wD,relu2deriv(o))
-    myDeriv = Matrex.multiply(wD,sig2deriv(o))
+    myDeriv = Matrex.multiply(wD,relu2deriv(o))
+    #myDeriv = Matrex.multiply(wD,sig2deriv(o))
     #IO.inspect(relu2deriv(o))
     newWeights = gen_new_weights_par(lr,input,myDeriv)
     #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"

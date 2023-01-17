@@ -25,9 +25,9 @@ import PNN
 
 
 
-#w0_ = Matrex.load("w01.csv")
-#w1_ = Matrex.load("w12.csv")
-#nn = [w0_,w1_]
+w0_ = Matrex.load("w01.csv")
+w1_ = Matrex.load("w12.csv")
+nn = [w0_,w1_]
 
 inputSize = 784 #pixels per image
 hiddenSize = 180#40#360#180#40
@@ -40,8 +40,11 @@ alpha =  0.01
 #      NN.newDenseLayer(256,180,:relu),
 #      NN.newDenseLayer(180,40,:relu),
 #      NN.newDenseLayer(40,10,:relu)]
-    #  NN.newDenseLayer(1500,1000,:relu),
-     # NN.newDenseLayer(1000,500,:relu),
+
+#nn= [NN.newDenseLayer(inputSize,100,:relu),
+#      NN.newDenseLayer(100,10,:relu)]
+
+      #NN.newDenseLayer(80,10,:relu)]
      # NN.newDenseLayer(500,10,:relu)]
 
 #nn = [NN.newDenseLayer(inputSize,256,:relu),
@@ -49,10 +52,10 @@ alpha =  0.01
   #    NN.newDenseLayer(40,10,:relu)]
 
 
-nn = [NN.newDenseLayer(inputSize,500,:relu),
-     NN.newDenseLayer(500,180,:relu),
-     NN.newDenseLayer(180,40,:relu),
-     NN.newDenseLayer(40,10,:relu)]
+#nn = [NN.newDenseLayer(inputSize,500,:relu),
+ #    NN.newDenseLayer(500,180,:relu),
+  #   NN.newDenseLayer(180,40,:relu),
+   #  NN.newDenseLayer(40,10,:relu)]
 
 #[wh|wt] =nn
 
@@ -60,7 +63,8 @@ nn = [NN.newDenseLayer(inputSize,500,:relu),
 #images = Matrex.load("mnistfullIMG.csv")
 #labels = Matrex.load("mnistfullLAB.csv")
 
-
+#images = Matrex.load("imgMNIST.csv")
+#labels = Matrex.load("tarMNIST.csv")
 
 images = Matrex.load("img5000.csv")
 labels = Matrex.load("lab5000.csv")
@@ -71,6 +75,9 @@ IO.puts "finish loading"
 #images = Matrex.load("fashionIMG.csv")
 #labels = Matrex.load("fashionLAB.csv")
 
+#IO.puts Matrex.size(images)
+#IO.puts Matrex.size(labels)
+#raise "hell"
 _input1 = images[1]
 _target1 = labels[1]
 
@@ -108,19 +115,26 @@ _target1 = labels[1]
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[100,images,nn,labels,alpha])
 #IO.puts ("time: #{time/(1_000_000)}")
 
-WL.testSystem(8)
+timages = Matrex.load("test_img.csv")
+ttarget = Matrex.load("test_lab.csv")
 
-#{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[3,60000,images,nn,labels,alpha])
+WL.testSystem(5)
 
-#{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[10,50,10,10,images,nn,labels,alpha])
+#{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[10,100,images,nn,labels,alpha])
+
+#{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[20000,10,5,20,images,nn,labels,alpha])
 
 
-{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[10,50,100,images, nn, labels, alpha])
+{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[1000,50,100,images, nn, labels, alpha])
 
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])
 
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[1000,images,nn,labels,alpha])
+
+
+
+{time, _k } = :timer.tc(&NN.run_test/4, [1000,timages,ttarget, newnet])
 
 IO.puts ("time: #{time/(1_000_000)}")
 
