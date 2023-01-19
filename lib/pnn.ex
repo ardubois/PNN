@@ -3,12 +3,12 @@ defmodule PNN do
  # Nx.default_backend(Torchx)
  import NN
  def loopBatch(1,nb,ntrain,slice,input,nn,target,lr) do
-  {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr)
+  {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr,0,0)
   IO.puts("I #{1} error: #{error/(nb*ntrain*slice)} Acc: #{correct/(nb*ntrain*slice)}")
   {newnet,error,correct}
 end
 def loopBatch(n,nb,ntrain, slice,input,nn,target,lr) do
-  {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr)
+  {newnet,wd,error,correct}=trainPBatch(nb,ntrain,slice,input,nn,target,lr,0,0)
  # IO.puts "Error"
   #IO.inspect error
   #raise "hell"
@@ -16,32 +16,44 @@ def loopBatch(n,nb,ntrain, slice,input,nn,target,lr) do
   r = loopBatch(n-1,nb,ntrain,slice,input,newnet,target,lr)
   r
 end
-def trainPBatch(1,ntrain,slice,input,nn,target,lr) do
-    {newnet,wd1,error,correct}= run_batchWL(ntrain,slice,input,nn,target,lr)
-    #IO.puts("I #{1} error: #{error/(ntrain*slice)} Acc: #{correct/(ntrain*slice)}")
-    {newnet,wd1,error,correct}
-  end
-  def trainPBatch(n,ntrain, slice,input,nn,target,lr) do
-    {newnet,wd1,error,correct}=run_batchWL(ntrain,slice,input,nn,target,lr)
-   # IO.puts "Error"
-    #IO.inspect error
-    #IO.puts("I #{n} error: #{error} Acc: #{correct}")
-    #[w1,w2] = newnet
-    #IO.puts "w1: #{Matrex.sum(w1)}    w2: #{Matrex.sum(w2)}"
-
+#def trainPBatch(1,ntrain,slice,input,nn,target,lr) do
+#    {newnet,wd1,error,correct}= run_batchWL(ntrain,slice,input,nn,target,lr)
+#    #IO.puts("I #{1} error: #{error/(ntrain*slice)} Acc: #{correct/(ntrain*slice)}")
+#    {newnet,wd1,error,correct}
+#  end
+def trainPBatch(1,bsize,slice,input,nn,target,lr, argerror, argacc) do
     {il,ic}=Matrex.size(input)
     {tl,tc}=Matrex.size(target)
- #   IO.inspect {il,ic}
-  #  IO.inspect {tl,tc}
-    restinput = Matrex.submatrix(input,((ntrain*slice)+1)..il,1..ic)
-    resttarget = Matrex.submatrix(target,((ntrain*slice)+1)..tl,1..tc)
-    #IO.puts("I #{n} error: #{(error)/ntrain} Acc: #{correct/ntrain}")
-    {finalnet,wd2,nerror,nacc} = trainPBatch(n-1,ntrain,slice,restinput,newnet,resttarget,lr)
-    finalerror = error + nerror
-    finalacc = correct + nacc
-    #IO.puts "error: #{finalerror} accuracy: #{finalacc}"
-    {finalnet,wd2,finalerror,finalacc}
+    inputb = Matrex.submatrix(input,1..(bsize*slice),1..ic)
+    targetb = Matrex.submatrix(target,1..(bsize*slice),1..tc)
+    {newnet,wd1,error,correct}= run_batchWL(bsize,slice,inputb,nn,targetb,lr)
+    {newnet,wd1,error+argerror,correct+argacc}
   end
+def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
+    {il,ic}=Matrex.size(input)
+    {tl,tc}=Matrex.size(target)
+    inputb = Matrex.submatrix(input,((n-1)*bsize*slice)+1..(slice*bsize*n),1..ic)
+    targetb = Matrex.submatrix(target,((n-1)*bsize*slice)+1..(slice*bsize*n),1..tc)
+    {newnet,wd1,error,correct}=run_batchWL(bsize,slice,inputb,nn,targetb,lr)
+
+    trainPBatch(n-1,bsize,slice,input,newnet,target,lr,error+argerror, correct+argacc)
+
+  end
+  #def trainPBatch(n,ntrain, slice,input,nn,target,lr) do
+  #  {newnet,wd1,error,correct}=run_batchWL(ntrain,slice,input,nn,target,lr)
+#
+#    {il,ic}=Matrex.size(input)
+#    {tl,tc}=Matrex.size(target)
+
+ #   restinput = Matrex.submatrix(input,((ntrain*slice)+1)..il,1..ic)
+ #   resttarget = Matrex.submatrix(target,((ntrain*slice)+1)..tl,1..tc)
+
+  #  {finalnet,wd2,nerror,nacc} = trainPBatch(n-1,ntrain,slice,restinput,newnet,resttarget,lr)
+  #  finalerror = error + nerror
+  #  finalacc = correct + nacc
+
+#    {finalnet,wd2,finalerror,finalacc}
+#  end
   def dotP(vet,matrix) do
     #{r_,c} = Nx.shape(matrix)
     {r_,c}=Matrex.size(matrix)

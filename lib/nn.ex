@@ -221,46 +221,83 @@ defmodule NN do
     r
   end
   def loop_batch(1,ntrain,bsize,input,nn,target,lr) do
-    {newnet,error,correct}=trainNN_batch(ntrain, bsize,input,nn,target,lr)
+    {newnet,error,correct}=trainNN_batch(ntrain, bsize,input,nn,target,lr,0,0)
     IO.puts("I #{1} error: #{error/(ntrain*bsize)} Acc: #{correct/(ntrain*bsize)}")
     {newnet,error,correct}
   end
   def loop_batch(n,ntrain, bsize, input,nn,target,lr) do
-    {newnet,error,correct}=trainNN_batch(ntrain, bsize,input,nn,target,lr)
+    {newnet,error,correct}=trainNN_batch(ntrain, bsize,input,nn,target,lr,0,0)
     #raise "hell"
     IO.puts("I #{n} error: #{error/(ntrain*bsize)} Acc: #{correct/(ntrain*bsize)}")
     r = loop_batch(n-1,ntrain,bsize,input,newnet,target,lr)
     r
   end
-  def trainNN_batch(1,bsize,input,weights,target,lr) do
+  def trainNN_batch(1,bsize,input,weights,target,lr,argerror,argacc) do
     {il,ic}=Matrex.size(input)
     {tl,tc}=Matrex.size(target)
-    #IO.puts "lac #{1}"
     inputb = Matrex.submatrix(input,1..bsize,1..ic)
     targetb = Matrex.submatrix(target,1..bsize,1..tc)
     {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
     #IO.puts "error: #{error} accuracy: #{acc}"
-    {newNet,error,acc}
+    {newNet,error+argerror,acc+argacc}
   end
-  def trainNN_batch(n,bsize,input,weights,target,lr) do
+  def trainNN_batch(n,bsize,input,weights,target,lr,argerror,argacc) do
     {il,ic}=Matrex.size(input)
     {tl,tc}=Matrex.size(target)
-    #IO.puts "lac #{n}"
-    inputb = Matrex.submatrix(input,1..bsize,1..ic)
-    targetb = Matrex.submatrix(target,1..bsize,1..tc)
-    {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
-    #IO.puts "error: #{error} accuracy: #{acc}"
-    #[w1,w2] = newNet
-    #IO.puts "w1: #{Matrex.sum(w1)}    w2: #{Matrex.sum(w2)}"
-    #raise "hell"
-    inputr = Matrex.submatrix(input,(bsize+1)..il,1..ic)
-    targetr = Matrex.submatrix(target,(bsize+1)..tl,1..tc)
-    {finalnet,nerror,nacc}= trainNN_batch(n-1,bsize,inputr,newNet,targetr,lr)
-    finalerror = error + nerror
-    finalacc = acc + nacc
-    #IO.puts "error: #{finalerror} accuracy: #{finalacc}"
-    {finalnet,finalerror,finalacc}
+    inputb = Matrex.submatrix(input,((n-1)*bsize)+1..(bsize*n),1..ic)
+    targetb = Matrex.submatrix(target,((n-1)*bsize)+1..(bsize*n),1..tc)
+    {newNet,_wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
+    trainNN_batch(n-1,bsize,input,newNet,target,lr,argerror+error, argacc+acc)
   end
+  #def trainNN_batch(1,bsize,input,weights,target,lr) do
+  #  {il,ic}=Matrex.size(input)
+  #  {tl,tc}=Matrex.size(target)
+  #  inputb = Matrex.submatrix(input,1..bsize,1..ic)
+  #  targetb = Matrex.submatrix(target,1..bsize,1..tc)
+  #  {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
+  #  {newNet,error,acc}
+  #end
+  #def trainNN_batch(n,bsize,input,weights,target,lr) do
+  #  {il,ic}=Matrex.size(input)
+  #  {tl,tc}=Matrex.size(target)
+  #  inputb = Matrex.submatrix(input,1..bsize,1..ic)
+  #  targetb = Matrex.submatrix(target,1..bsize,1..tc)
+  #  {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
+  #  inputr = Matrex.submatrix(input,(bsize+1)..il,1..ic)
+  #  targetr = Matrex.submatrix(target,(bsize+1)..tl,1..tc)
+  #  {finalnet,nerror,nacc}= trainNN_batch(n-1,bsize,inputr,newNet,targetr,lr)
+  #  finalerror = error + nerror
+  #  finalacc = acc + nacc
+  #  #IO.puts "error: #{finalerror} accuracy: #{finalacc}"
+  #  {finalnet,finalerror,finalacc}
+  #end
+  #def trainNN_batch(1,bsize,input,weights,target,lr) do
+  #  {il,ic}=Matrex.size(input)
+  #  {tl,tc}=Matrex.size(target)
+  #  inputb = Matrex.submatrix(input,1..bsize,1..ic)
+  #  targetb = Matrex.submatrix(target,1..bsize,1..tc)
+  #  {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
+  #  #IO.puts "error: #{error} accuracy: #{acc}"
+  #  {newNet,error,acc}
+  #end
+  #def trainNN_batch(n,bsize,input,weights,target,lr) do
+  #  {il,ic}=Matrex.size(input)
+  #  {tl,tc}=Matrex.size(target)
+  #  inputb = Matrex.submatrix(input,((n-1)*bsize)+1..(bsize*n),1..ic)
+  #  targetb = Matrex.submatrix(target,((n-1)*bsize)+1..(bsize*n),1..tc)
+  #  {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
+  #  #IO.puts "error: #{error} accuracy: #{acc}"
+  #  #[w1,w2] = newNet
+  #  #IO.puts "w1: #{Matrex.sum(w1)}    w2: #{Matrex.sum(w2)}"
+  #  #raise "hell"
+  #  #inputr = Matrex.submatrix(input,(bsize+1)..il,1..ic)
+  #  #targetr = Matrex.submatrix(target,(bsize+1)..tl,1..tc)
+  #  {finalnet,nerror,nacc}= trainNN_batch(n-1,bsize,input,newNet,target,lr)
+  #  finalerror = error + nerror
+  #  finalacc = acc + nacc
+  #  #IO.puts "error: #{finalerror} accuracy: #{finalacc}"
+  #  {finalnet,finalerror,finalacc}
+  #end
 end
 
 defmodule Bench do

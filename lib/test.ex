@@ -25,9 +25,9 @@ import PNN
 
 
 
-w0_ = Matrex.load("w01.csv")
-w1_ = Matrex.load("w12.csv")
-nn = [w0_,w1_]
+#w0_ = Matrex.load("w01.csv")
+#w1_ = Matrex.load("w12.csv")
+#nn = [w0_,w1_]
 
 inputSize = 784 #pixels per image
 hiddenSize = 180#40#360#180#40
@@ -47,9 +47,9 @@ alpha =  0.01
       #NN.newDenseLayer(80,10,:relu)]
      # NN.newDenseLayer(500,10,:relu)]
 
-#nn = [NN.newDenseLayer(inputSize,256,:relu),
- #     NN.newDenseLayer(256,40,:relu),
-  #    NN.newDenseLayer(40,10,:relu)]
+nn = [NN.newDenseLayer(inputSize,200,:relu),
+      NN.newDenseLayer(200,80,:relu),
+      NN.newDenseLayer(80,10,:relu)]
 
 
 #nn = [NN.newDenseLayer(inputSize,500,:relu),
@@ -60,14 +60,17 @@ alpha =  0.01
 #[wh|wt] =nn
 
 
-#images = Matrex.load("mnistfullIMG.csv")
-#labels = Matrex.load("mnistfullLAB.csv")
+images = Matrex.load("mnistfullIMG.mtx")
+labels = Matrex.load("mnistfullLAB.mtx")
+
+#Matrex.save(images, "mnistfullIMG.mtx")
+#Matrex.save(labels, "mnistfullLAB.mtx")
 
 #images = Matrex.load("imgMNIST.csv")
 #labels = Matrex.load("tarMNIST.csv")
 
-images = Matrex.load("img5000.csv")
-labels = Matrex.load("lab5000.csv")
+#images = Matrex.load("img5000.csv")
+#labels = Matrex.load("lab5000.csv")
 IO.puts "finish loading"
 
 #images = Matrex.submatrix(images,1..1000,1..784)
@@ -115,24 +118,29 @@ _target1 = labels[1]
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[100,images,nn,labels,alpha])
 #IO.puts ("time: #{time/(1_000_000)}")
 
-timages = Matrex.load("test_img.csv")
-ttarget = Matrex.load("test_lab.csv")
+
 
 WL.testSystem(5)
 
 #{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[10,100,images,nn,labels,alpha])
 
-#{time,{newNet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[20000,10,5,20,images,nn,labels,alpha])
+{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[100,600,5,20,images,nn,labels,alpha])
 
 
-{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[1000,50,100,images, nn, labels, alpha])
+#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[100,600,100,images, nn, labels, alpha])
 
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])
 
 #{time,{newnet,error,correct}}=:timer.tc(&NN.trainNN/5,[1000,images,nn,labels,alpha])
 
+IO.puts ("time: #{time/(1_000_000)}")
 
+timages = Matrex.load("test_img.mtx")
+ttarget = Matrex.load("test_lab.mtx")
+
+#Matrex.save(timages, "test_img.mtx")
+#Matrex.save(ttarget, "test_lab.mtx")
 
 {time, _k } = :timer.tc(&NN.run_test/4, [1000,timages,ttarget, newnet])
 
