@@ -120,14 +120,14 @@ _target1 = labels[1]
 
 
 
-WL.testSystem(5)
+WL.testSystem(10)
 
 #{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[10,100,images,nn,labels,alpha])
 
-{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[100,600,5,20,images,nn,labels,alpha])
+{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[10,600,10,10,images,nn,labels,alpha])
 
 
-#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[100,600,100,images, nn, labels, alpha])
+#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[10,600,100,images, nn, labels, alpha])
 
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])

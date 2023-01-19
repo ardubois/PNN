@@ -156,19 +156,19 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
                                                         #IO.inspect acc2
                                                         {sumNNs(nn1,nn2),wd1,erro1+erro2,acc1+acc2} end)
   end
-  def run_batchWL(size,slice,input,weights,target,lr) do
-    list = slice_entries(size,slice,input,target)
-    tasks = Enum.map(list, fn({i1,t1}) -> WL.send_job({size,slice,i1,weights,t1,lr}) end)
-    #results = Enum.map(tasks,&Task.await/1)
-    #[hr|tr] = tasks
-    #{nn_,wd_,erro_,acc_} = WL.get_result(hr)
-    List.foldr(tasks, {weights,0,0,0}, fn(task,{nn2,wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = WL.get_result task
-                                                        #IO.inspect erro2
-                                                        #IO.inspect acc2
-                                                        #IO.inspect erro1
-                                                        #IO.inspect acc1
-                                                        {sumNNs(nn1,nn2),wd1,erro1+erro2,acc1+acc2} end)
-  end
+  #def run_batchWL(size,slice,input,weights,target,lr) do
+  #  list = slice_entries(size,slice,input,target)
+  #  tasks = Enum.map(list, fn({i1,t1}) -> WL.send_job({size,slice,i1,weights,t1,lr}) end)
+  #  #results = Enum.map(tasks,&Task.await/1)
+  #  #[hr|tr] = tasks
+  #  #{nn_,wd_,erro_,acc_} = WL.get_result(hr)
+  #  List.foldr(tasks, {weights,0,0,0}, fn(task,{nn2,wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = WL.get_result task
+  #                                                      #IO.inspect erro2
+  #                                                      #IO.inspect acc2
+  #                                                      #IO.inspect erro1
+  #                                                      #IO.inspect acc1
+  #                                                      {sumNNs(nn1,nn2),wd1,erro1+erro2,acc1+acc2} end)
+  #end
   def sumNNs([w1],[w2]) do
     w3 =Matrex.add(w1,w2)
     [w3]
@@ -188,25 +188,57 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
     nt = divNN(t,n)
     [nw|nt]
   end
-  def slice_entries(1,slice,input,target)do
-    {il,ic}=Matrex.size(input)
-    {tl,tc}=Matrex.size(target)
-    inputs = Matrex.submatrix(input,1..slice,1..ic)
-    targets = Matrex.submatrix(target,1..slice,1..tc)
+#  def slice_entries(1,slice,input,target)do
+#    {il,ic}=Matrex.size(input)
+#    {tl,tc}=Matrex.size(target)
+#    inputs = Matrex.submatrix(input,1..slice,1..ic)
+#    targets = Matrex.submatrix(target,1..slice,1..tc)
+#
+#    #task =Task.async(fn -> NN.runNet(input1,weights,target1,lr)end)
+#    [{inputs,targets}]
+#  end
+ def run_batchWL(size,slice,input,weights,target,lr) do
+  tasks = slice_entries(size, size, slice,input, weights, target,lr)
+  #tasks = Enum.map(list, fn({i1,t1}) -> WL.send_job({size,slice,i1,weights,t1,lr}) end)
+  #results = Enum.map(tasks,&Task.await/1)
+  #[hr|tr] = tasks
+  #{nn_,wd_,erro_,acc_} = WL.get_result(hr)
+  List.foldr(tasks, {weights,0,0,0}, fn(task,{nn2,wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = WL.get_result task
+                                                      #IO.inspect erro2
+                                                      #IO.inspect acc2
+                                                      #IO.inspect erro1
+                                                      #IO.inspect acc1
+                                                      {sumNNs(nn1,nn2),wd1,erro1+erro2,acc1+acc2} end)
+ end
+  def slice_entries(1,size, slice,input,nn, target, lr)do
 
-    #task =Task.async(fn -> NN.runNet(input1,weights,target1,lr)end)
-    [{inputs,targets}]
-  end
-  def slice_entries(n,slice,input,target)do
     {il,ic}=Matrex.size(input)
     {tl,tc}=Matrex.size(target)
     inputs = Matrex.submatrix(input,1..slice,1..ic)
     targets = Matrex.submatrix(target,1..slice,1..tc)
-    restinput = Matrex.submatrix(input,(slice+1)..il,1..ic)
-    resttarget = Matrex.submatrix(target,(slice+1)..tl,1..tc)
-    slices = slice_entries(n-1,slice,restinput,resttarget)
-    [{inputs,targets}|slices]
+    task = WL.send_job({size,slice,inputs,nn,targets,lr})
+    #task =Task.async(fn -> NN.runNet(input1,weights,target1,lr)end)
+    [task]
   end
+  def slice_entries(n,size, slice,input,nn,target,lr)do
+    {il,ic}=Matrex.size(input)
+    {tl,tc}=Matrex.size(target)
+    inputs = Matrex.submatrix(input,((n-1)*slice)+1..(slice*n),1..ic)
+    targets = Matrex.submatrix(target,((n-1)*slice)+1..(slice*n),1..tc)
+    task = WL.send_job({size,slice,inputs,nn,targets,lr})
+    tasks = slice_entries(n-1,size, slice,input,nn,target,lr)
+    [task|tasks]
+  end
+  #def slice_entries(n,slice,input,target)do
+  #  {il,ic}=Matrex.size(input)
+  #  {tl,tc}=Matrex.size(target)
+  #  inputs = Matrex.submatrix(input,1..slice,1..ic)
+  #  targets = Matrex.submatrix(target,1..slice,1..tc)
+  #  restinput = Matrex.submatrix(input,(slice+1)..il,1..ic)
+  #  resttarget = Matrex.submatrix(target,(slice+1)..tl,1..tc)
+  #  slices = slice_entries(n-1,slice,restinput,resttarget)
+  #  [{inputs,targets}|slices]
+  #end
   def slice_entries_p(1,input,target,weights,lr)do
     input1 = Matrex.row(input,1)
     target1 = Matrex.row(target,1)
