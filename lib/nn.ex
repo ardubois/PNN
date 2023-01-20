@@ -58,7 +58,7 @@ defmodule NN do
     #IO.inspect r
     r
   end
-  def newDenseLayer(x,y,type) do
+  def newDenseLayer(x,y,_type) do
     fitWeights(Matrex.random(x, y))
    end
   def check_correct(1,output,target) do
@@ -157,6 +157,12 @@ defmodule NN do
     nextLayerD = Matrex.dot(finalDerivative,Matrex.transpose(weights_l))
     {[newWeights],nextLayerD,error,correct}
   end
+  def run_net_batch_par(batchsize,input,[{activation,derivative}|tl],target,lr) do
+    o =  activation.(input)
+    {net,deriv,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
+    nextDeriv = Matrex.multiply(derivative.(input),deriv)
+    {net,nextDeriv,error,correct}
+  end
   def run_net_batch_par(batchsize,input,[w|tl],target,lr) do
     #o =  relu(Matrex.dot(input,w))
     #IO.inspect(w)
@@ -181,16 +187,16 @@ defmodule NN do
   def trainNN(1, input, nn,target,lr) do
     input1 = Matrex.row(input,1)
     target1 = Matrex.row(target,1)
-    {net,wD,error,correct} = runNet(input1,nn,target1,lr)
+    {net,_wD,error,correct} = runNet(input1,nn,target1,lr)
     {net,error,correct}
   end
   def trainNN(n,input,nn,target,lr) do
     input1 = Matrex.row(input,1)
     target1 = Matrex.row(target,1)
-    {net,wD,newError,correct} = runNet(input1,nn,target1,lr)
+    {net,_wD,newError,correct} = runNet(input1,nn,target1,lr)
 
-    {il,ic}=Matrex.size(input)
-    {tl,tc}=Matrex.size(target)
+    {il,_ic}=Matrex.size(input)
+    {tl,_tc}=Matrex.size(target)
     if (il == 2) do
         tinput  = Matrex.row(input,2) # Drop the first "row"
         ttarget = Matrex.row(target,2)
@@ -233,17 +239,17 @@ defmodule NN do
     r
   end
   def trainNN_batch(1,bsize,input,weights,target,lr,argerror,argacc) do
-    {il,ic}=Matrex.size(input)
-    {tl,tc}=Matrex.size(target)
+    {_il,ic}=Matrex.size(input)
+    {_tl,tc}=Matrex.size(target)
     inputb = Matrex.submatrix(input,1..bsize,1..ic)
     targetb = Matrex.submatrix(target,1..bsize,1..tc)
-    {newNet,wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
+    {newNet,_wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
     #IO.puts "error: #{error} accuracy: #{acc}"
     {newNet,error+argerror,acc+argacc}
   end
   def trainNN_batch(n,bsize,input,weights,target,lr,argerror,argacc) do
-    {il,ic}=Matrex.size(input)
-    {tl,tc}=Matrex.size(target)
+    {_il,ic}=Matrex.size(input)
+    {_tl,tc}=Matrex.size(target)
     inputb = Matrex.submatrix(input,((n-1)*bsize)+1..(bsize*n),1..ic)
     targetb = Matrex.submatrix(target,((n-1)*bsize)+1..(bsize*n),1..tc)
     {newNet,_wd,error,acc} = NN.run_net_batch(bsize,inputb,weights,targetb,lr)
@@ -298,6 +304,25 @@ defmodule NN do
   #  #IO.puts "error: #{finalerror} accuracy: #{finalacc}"
   #  {finalnet,finalerror,finalacc}
   #end
+  def input(size) do
+    [size]
+  end
+  def dense(model,size) do
+    lsize = List.last(model)
+    nm = remove_last(model)
+    nm ++ [newDenseLayer(lsize,size,:whatever), size]
+  end
+  def reluLayer(model) do
+    lsize = List.last(model)
+    nm = remove_last(model)
+    nm ++ [{&NN.relu/1 ,&NN.relu2deriv/1}]++[lsize]
+  end
+  def remove_last([_a]) do
+    []
+  end
+  def remove_last([h|t]) do
+  [h|remove_last(t)]
+ end
 end
 
 defmodule Bench do
