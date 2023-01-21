@@ -25,9 +25,9 @@ import PNN
 
 
 
-#w0_ = Matrex.load("w01.csv")
-#w1_ = Matrex.load("w12.csv")
-#nn = [w0_,w1_]
+w0_ = Matrex.load("w01.csv")
+w1_ = Matrex.load("w12.csv")
+nn = [w0_,w1_]
 
 inputSize = 784 #pixels per image
 hiddenSize = 180#40#360#180#40
@@ -104,20 +104,20 @@ IO.puts "finish loading"
 #IO.puts ("time: #{time/(1_000_000)}")
 
 
-nn =
-      DL.input(784)
-      |> DL.dense(500)
-      |> DL.reluLayer()
-      |> DL.dense(180)
-      |> DL.reluLayer()
-      |> DL.dense(10)
-      |> DL.error()
+#nn =
+#      DL.input(784)
+#      |> DL.dense(500)
+#      |> DL.reluLayer()
+#      |> DL.dense(180)
+#      |> DL.reluLayer()
+#      |> DL.dense(10)
+#      |> DL.error()
 
 
 #IO.inspect (nn)
 #raise "hell"
 
-#nn = [w0_, {&DL.relu/1, &DL.relu2deriv/1}, w1_, {&DL.relu/1, &DL.relu2deriv/1}]
+nn = [w0_, {&DL.relu/1, &DL.relu2deriv/1}, w1_, {&DL.error_grad/2, &DL.error_nn/2}]
 
 WL.testSystem(10)
 
