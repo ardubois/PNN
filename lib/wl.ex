@@ -38,7 +38,7 @@ import PNN
     end
   end
   def nn_work({bsize,slice ,input1,weights,target1,lr}) do
-      {net,wd,error,acc}=NN.run_net_batch_par((bsize*slice), input1,weights,target1,lr)
+      {net,wd,error,acc}=DL.run_net_batch_par((bsize*slice), input1,weights,target1,lr)
       #newNet = PNN.divNN(net,(bsize))
       nwd = wd
       nerror = error

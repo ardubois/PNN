@@ -47,9 +47,9 @@ alpha =  0.01
       #NN.newDenseLayer(80,10,:relu)]
      # NN.newDenseLayer(500,10,:relu)]
 
-nn = [NN.newDenseLayer(inputSize,200,:relu),
-      NN.newDenseLayer(200,80,:relu),
-      NN.newDenseLayer(80,10,:relu)]
+#nn = [NN.newDenseLayer(inputSize,200,:relu),
+#      NN.newDenseLayer(200,80,:relu),
+#      NN.newDenseLayer(80,10,:relu)]
 
 
 #nn = [NN.newDenseLayer(inputSize,500,:relu),
@@ -81,21 +81,6 @@ IO.puts "finish loading"
 #IO.puts Matrex.size(images)
 #IO.puts Matrex.size(labels)
 #raise "hell"
-_input1 = images[1]
-_target1 = labels[1]
-
-#IO.inspect images
-#IO.inspect labels
-#raise "hell"
-#r = NN.dotPSize(5,input1,wh)
-
-#IO.inspect input1
-#IO.inspect wh
-#IO.inspect r
-#raise "ok"
-#IO.inspect(input1)
-#IO.inspect(target1)
-#raise "o"
 
 #{newNet,d,errorFinal,correct} = NN.runNet(input1,nn2,target1,alpha)
 #time1 = Time.utc_now()
@@ -120,23 +105,30 @@ _target1 = labels[1]
 
 
 nn =
-      NN.input(786)
-      |> NN.dense(180)
-      |> NN.reluLayer()
-      |> NN.dense(10)
+      DL.input(784)
+      |> DL.dense(500)
+      |> DL.reluLayer()
+      |> DL.dense(180)
+      |> DL.reluLayer()
+      |> DL.dense(10)
+      |> DL.error()
 
-IO.inspect (nn)
-raise "hell"
+
+#IO.inspect (nn)
+#raise "hell"
+
+#nn = [w0_, {&DL.relu/1, &DL.relu2deriv/1}, w1_, {&DL.relu/1, &DL.relu2deriv/1}]
 
 WL.testSystem(10)
 
 #{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[10,100,images,nn,labels,alpha])
 
-{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[50,600,10,10,images,nn,labels,alpha])
+{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[10,600,10,10,images,nn,labels,alpha])
 
 
 #{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[10,600,100,images, nn, labels, alpha])
 
+#{time,{newnet,error,acc}} = :timer.tc(&DL.loop_batch/7,[10,600,100,images, nn, labels, alpha])
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])
 
@@ -150,7 +142,7 @@ ttarget = Matrex.load("test_labFULL.mtx")
 #Matrex.save(timages, "test_imgFULL.mtx")
 #Matrex.save(ttarget, "test_labFULL.mtx")
 
-{time, _k } = :timer.tc(&NN.run_test/4, [10000,timages,ttarget, newnet])
+{time, _k } = :timer.tc(&DL.run_test/4, [10000,timages,ttarget, newnet])
 
 IO.puts ("time: #{time/(1_000_000)}")
 

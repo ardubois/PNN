@@ -157,12 +157,6 @@ defmodule NN do
     nextLayerD = Matrex.dot(finalDerivative,Matrex.transpose(weights_l))
     {[newWeights],nextLayerD,error,correct}
   end
-  def run_net_batch_par(batchsize,input,[{activation,derivative}|tl],target,lr) do
-    o =  activation.(input)
-    {net,deriv,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
-    nextDeriv = Matrex.multiply(derivative.(input),deriv)
-    {net,nextDeriv,error,correct}
-  end
   def run_net_batch_par(batchsize,input,[w|tl],target,lr) do
     #o =  relu(Matrex.dot(input,w))
     #IO.inspect(w)

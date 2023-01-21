@@ -169,9 +169,17 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
   #                                                      #IO.inspect acc1
   #                                                      {sumNNs(nn1,nn2),wd1,erro1+erro2,acc1+acc2} end)
   #end
+  def sumNNs([{a,b}],[w2]) do
+    [{a,b}]
+  end
   def sumNNs([w1],[w2]) do
     w3 =Matrex.add(w1,w2)
     [w3]
+  end
+  def sumNNs([{a,b}|t1],[w2|t2]) do
+    rest = sumNNs(t1,t2)
+    [{a,b}|rest]
+
   end
   def sumNNs([w1|t1],[w2|t2]) do
     w3 =Matrex.add(w1,w2)
