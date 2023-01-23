@@ -44,6 +44,9 @@ defmodule DL do
   def predict(input,[_w]) do
     input #Matrex.dot(input,w)
   end
+  def predict(input,[{:dropout,_p}|tl]) do
+    predict(input,tl)
+  end
   def predict(input,[{activation,_derivative}|tl]) do
     o =  activation.(input)
     predict(o,tl)
@@ -93,6 +96,16 @@ defmodule DL do
     #IO.puts "Weights final 2: #{Matrex.sum(newWeights)}"
     #nextLayerD = Matrex.dot(finalDerivative,Matrex.transpose(weights_l))
     {[{egrad,enn}],finalDerivative,error,correct}
+  end
+  def run_net_batch(batchsize,input,[{:dropout,p}|tl],target,lr) do
+    {l,c} = Matrex.size(input)
+    dp = Matrex.random(l,c)
+    dp = Matrex.apply(dp,fn(n)-> if (n<=p) do 1 else 0 end end)
+    dp = Matrex.multiply((1/p),dp)
+    o = Matrex.multiply(input, dp)
+    {net,deriv,error,correct} = run_net_batch(batchsize,o,tl,target,lr)
+    nderiv = Matrex.multiply(dp,deriv)
+    {[{:dropout,p}|net],nderiv,error,correct}
   end
   def run_net_batch(batchsize,input,[{activation,derivative}|tl],target,lr) do
     o =  activation.(input)
@@ -166,6 +179,17 @@ defmodule DL do
     #nextLayerD = Matrex.dot(finalDerivative,Matrex.transpose(weights_l))
     {[{egrad,enn}],finalDerivative,error,correct}
   end
+  def run_net_batch_par(batchsize,input,[{:dropout,p}|tl],target,lr) do
+    #IO.puts "ok"
+    {l,c} = Matrex.size(input)
+    dp = Matrex.random(l,c)
+    dp = Matrex.apply(dp,fn(n)-> if (n<=p) do 1 else 0 end end)
+    dp = Matrex.multiply((1/p),dp)
+    o = Matrex.multiply(input, dp)
+    {net,deriv,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
+    nderiv = Matrex.multiply(dp,deriv)
+    {[{:dropout,p}|net],nderiv,error,correct}
+  end
   def run_net_batch_par(batchsize,input,[{activation,derivative}|tl],target,lr) do
     o =  activation.(input)
     {net,deriv,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
@@ -210,6 +234,11 @@ defmodule DL do
     nm = remove_last(model)
     nm ++ [{&DL.error_grad/2,&DL.error_nn/2}]
    end
+  def dropout(model,p) do
+    lsize = List.last(model)
+    nm = remove_last(model)
+    nm ++ [{:dropout,p}] ++ [lsize]
+  end
   def remove_last([_a]) do
     []
   end
