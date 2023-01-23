@@ -104,30 +104,31 @@ IO.puts "finish loading"
 #IO.puts ("time: #{time/(1_000_000)}")
 
 
-#nn =
-#      DL.input(784)
-#      |> DL.dense(100)
-#      |> DL.reluLayer()
-#      |> DL.dropout(0.5)
-#      |> DL.dense(10)
-#      |> DL.error()
+nn =
+      DL.input(784)
+      |> DL.dense(100)
+      |> DL.tanh_layer()
+      |> DL.dropout(0.5)
+      |> DL.dense(10)
+    #  |> DL.sigmoid_layer()
+      |> DL.error()
 
 
 #IO.inspect (nn)
 #raise "hell"
 
-nn = [w0_, {&DL.relu/1, &DL.relu2deriv/1}, {:dropout,0.5}, w1_, {&DL.error_grad/2, &DL.error_nn/2}]
+#nn = [w0_, {&DL.relu/1, &DL.relu2deriv/1}, {:dropout,0.5}, w1_, {&DL.error_grad/2, &DL.error_nn/2}]
 
 WL.testSystem(10)
 
 #{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[10,100,images,nn,labels,alpha])
 
-#{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[10,600,10,10,images,nn,labels,alpha])
+#{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[300,600,10,10,images,nn,labels,alpha])
 
 
 #{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[10,600,100,images, nn, labels, alpha])
 
-{time,{newnet,error,acc}} = :timer.tc(&DL.loop_batch/7,[10,600,100,images, nn, labels, alpha])
+{time,{newnet,error,acc}} = :timer.tc(&DL.loop_batch/7,[100,600,100,images, nn, labels, alpha])
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])
 

@@ -20,6 +20,15 @@ defmodule DL do
   def sig2deriv(output) do
     Matrex.multiply(output,Matrex.subtract(1,output))
   end
+  def tanh(input) do
+    Matrex.apply(input,:tanh)
+  end
+  def tanh2deriv(output) do
+    Matrex.subtract(1,Matrex.square(output))
+  end
+
+
+
   def genNewWeights(weights,lr,layer,der) do
     Matrex.add(weights,Matrex.multiply(lr,Matrex.dot(Matrex.transpose(layer),der)))
   end
@@ -225,10 +234,20 @@ defmodule DL do
     nm = remove_last(model)
     nm ++ [newDenseLayer(lsize,size,:whatever), size]
   end
-  def reluLayer(model) do
+  def relu_layer(model) do
     lsize = List.last(model)
     nm = remove_last(model)
     nm ++ [{&DL.relu/1 ,&DL.relu2deriv/1}]++[lsize]
+  end
+  def sigmoid_layer(model) do
+    lsize = List.last(model)
+    nm = remove_last(model)
+    nm ++ [{&DL.sigmoid/1 ,&DL.sig2deriv/1}]++[lsize]
+  end
+  def tanh_layer(model) do
+    lsize = List.last(model)
+    nm = remove_last(model)
+    nm ++ [{&DL.tanh/1 ,&DL.tanh2deriv/1}]++[lsize]
   end
   def error(model) do
     nm = remove_last(model)

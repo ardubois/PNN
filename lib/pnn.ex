@@ -207,6 +207,8 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
 #  end
  def run_batchWL(size,slice,input,weights,target,lr) do
   tasks = slice_entries(size, size, slice,input, weights, target,lr)
+  #IO.inspect Matrex.row(input,1)
+  #raise "hell"
   #tasks = Enum.map(list, fn({i1,t1}) -> WL.send_job({size,slice,i1,weights,t1,lr}) end)
   #results = Enum.map(tasks,&Task.await/1)
   #[hr|tr] = tasks
