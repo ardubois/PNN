@@ -32,7 +32,7 @@ nn = [w0_,w1_]
 inputSize = 784 #pixels per image
 hiddenSize = 180#40#360#180#40
 outputSize = 10
-alpha =  0.01
+alpha =  0.1
 #nn = [NN.newDenseLayer(inputSize,hiddenSize,:relu),
  #     NN.newDenseLayer(hiddenSize,outputSize,:relu)]
 
@@ -117,6 +117,8 @@ nn =
 #IO.inspect (nn)
 #raise "hell"
 
+#nn = [w0_, {&DL.tanh/1, &DL.tanh2deriv/1},  {:dropout,0.5},w1_, {&DL.error_grad/2, &DL.error_nn/2}]
+
 #nn = [w0_, {&DL.relu/1, &DL.relu2deriv/1}, {:dropout,0.5}, w1_, {&DL.error_grad/2, &DL.error_nn/2}]
 
 WL.testSystem(10)
@@ -128,7 +130,7 @@ WL.testSystem(10)
 
 #{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[10,600,100,images, nn, labels, alpha])
 
-{time,{newnet,error,acc}} = :timer.tc(&DL.loop_batch/7,[100,600,100,images, nn, labels, alpha])
+{time,{newnet,error,acc}} = :timer.tc(&DL.loop_batch/7,[300,100,100,images, nn, labels, alpha])
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])
 

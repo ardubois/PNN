@@ -22,11 +22,18 @@ defmodule DL do
   end
   def tanh(input) do
     Matrex.apply(input,:tanh)
+
   end
   def tanh2deriv(output) do
     Matrex.subtract(1,Matrex.square(output))
   end
-
+  def printM(1,m) do
+    IO.inspect m[1][1]
+  end
+  def printM(n,m) do
+    IO.inspect m[1][n]
+    printM(n-1,m)
+  end
 
 
   def genNewWeights(weights,lr,layer,der) do
@@ -96,8 +103,9 @@ defmodule DL do
     #finalDerivative = Matrex.divide(Matrex.multiply(o,diff),batchsize)
 
     error =  enn.(target,input)
-
-
+    #IO.puts(Matrex.sum(input))
+    #IO.inspect input
+    #IO.inspect error
     #{l,_c} = Matrex.size(target)
 
     correct = check_correct(batchsize,input,target)
@@ -112,14 +120,19 @@ defmodule DL do
     dp = Matrex.apply(dp,fn(n)-> if (n<=p) do 1 else 0 end end)
     dp = Matrex.multiply((1/p),dp)
     o = Matrex.multiply(input, dp)
+    #IO.puts "dropout"
+    #IO.inspect o
+    #IO.puts "end dropout"
     {net,deriv,error,correct} = run_net_batch(batchsize,o,tl,target,lr)
     nderiv = Matrex.multiply(dp,deriv)
     {[{:dropout,p}|net],nderiv,error,correct}
   end
   def run_net_batch(batchsize,input,[{activation,derivative}|tl],target,lr) do
     o =  activation.(input)
+    #IO.puts "end activatrion"
+    #raise "hell"
     {net,deriv,error,correct} = run_net_batch(batchsize,o,tl,target,lr)
-    nextDeriv = Matrex.multiply(derivative.(input),deriv)
+    nextDeriv = Matrex.multiply(derivative.(o),deriv)
     {[{activation,derivative}|net],nextDeriv,error,correct}
   end
   def run_net_batch(batchsize,input,[w|tl],target,lr) do
@@ -127,16 +140,13 @@ defmodule DL do
     #IO.inspect(w)
     #raise "hell"
     o =  Matrex.dot(input,w)
-    #o =  NN.sigmoid(Matrex.dot(input,w))
-    #IO.inspect o
-    #raise "oi"
+
+
     {net,wD,error,correct} = run_net_batch(batchsize,o,tl,target,lr)
     #myDeriv = Matrex.multiply(wD,relu2deriv(o))
     #myDeriv = Matrex.multiply(wD,sig2deriv(o))
     #IO.inspect(relu2deriv(o))
     newWeights = genNewWeights(w,lr,input,wD)
-    #IO.puts "Weights final 1: #{Matrex.sum(newWeights)}"
-    #IO.inspect(Nx.sum(newWeights))
     nextLayerD = Matrex.dot(wD,Matrex.transpose(w))
     {[newWeights|net],nextLayerD,error,correct}
   end
@@ -167,6 +177,7 @@ defmodule DL do
     inputb = Matrex.submatrix(input,((n-1)*bsize)+1..(bsize*n),1..ic)
     targetb = Matrex.submatrix(target,((n-1)*bsize)+1..(bsize*n),1..tc)
     {newNet,_wd,error,acc} = DL.run_net_batch(bsize,inputb,weights,targetb,lr)
+
     trainNN_batch(n-1,bsize,input,newNet,target,lr,argerror+error, argacc+acc)
   end
   def run_net_batch_par(batchsize,input,[{egrad,enn}],target,_lr) do
@@ -202,7 +213,7 @@ defmodule DL do
   def run_net_batch_par(batchsize,input,[{activation,derivative}|tl],target,lr) do
     o =  activation.(input)
     {net,deriv,error,correct} = run_net_batch_par(batchsize,o,tl,target,lr)
-    nextDeriv = Matrex.multiply(derivative.(input),deriv)
+    nextDeriv = Matrex.multiply(derivative.(o),deriv)
     {[{activation,derivative}|net],nextDeriv,error,correct}
   end
   def run_net_batch_par(batchsize,input,[w|tl],target,lr) do
