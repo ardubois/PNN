@@ -56,7 +56,7 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
 #  end
   def dotP(vet,matrix) do
     #{r_,c} = Nx.shape(matrix)
-    {r_,c}=Matrex.size(matrix)
+    {_r_,c}=Matrex.size(matrix)
   #  #IO.inspect(vet)
   #  #IO.inspect(matrix)
   #  #raise "ok"
@@ -151,7 +151,7 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
     #results = Enum.map(tasks,&Task.await/1)
     [hr|tr] = tasks
     r1 = Task.await(hr)
-    List.foldr(tr, r1, fn(task,{nn2,wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = Task.await task
+    List.foldr(tr, r1, fn(task,{nn2,_wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = Task.await task
                                                         #IO.inspect erro2
                                                         #IO.inspect acc2
                                                         {sumNNs(nn1,nn2),wd1,erro1+erro2,acc1+acc2} end)
@@ -169,14 +169,14 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
   #                                                      #IO.inspect acc1
   #                                                      {sumNNs(nn1,nn2),wd1,erro1+erro2,acc1+acc2} end)
   #end
-  def sumNNs([{a,b}],[w2]) do
+  def sumNNs([{a,b}],[_w2]) do
     [{a,b}]
   end
   def sumNNs([w1],[w2]) do
     w3 =Matrex.add(w1,w2)
     [w3]
   end
-  def sumNNs([{a,b}|t1],[w2|t2]) do
+  def sumNNs([{a,b}|t1],[_w2|t2]) do
     rest = sumNNs(t1,t2)
     [{a,b}|rest]
 
@@ -213,7 +213,7 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
   #results = Enum.map(tasks,&Task.await/1)
   #[hr|tr] = tasks
   #{nn_,wd_,erro_,acc_} = WL.get_result(hr)
-  List.foldr(tasks, {weights,0,0,0}, fn(task,{nn2,wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = WL.get_result task
+  List.foldr(tasks, {weights,0,0,0}, fn(task,{nn2,_wd2,erro2,acc2}) -> {nn1,wd1,erro1,acc1} = WL.get_result task
                                                       #IO.inspect erro2
                                                       #IO.inspect acc2
                                                       #IO.inspect erro1
@@ -222,8 +222,8 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
  end
   def slice_entries(1,size, slice,input,nn, target, lr)do
 
-    {il,ic}=Matrex.size(input)
-    {tl,tc}=Matrex.size(target)
+    {_il,ic}=Matrex.size(input)
+    {_tl,tc}=Matrex.size(target)
     inputs = Matrex.submatrix(input,1..slice,1..ic)
     targets = Matrex.submatrix(target,1..slice,1..tc)
     task = WL.send_job({size,slice,inputs,nn,targets,lr})
@@ -231,8 +231,8 @@ def trainPBatch(n,bsize, slice,input,nn,target,lr,argerror, argacc) do
     [task]
   end
   def slice_entries(n,size, slice,input,nn,target,lr)do
-    {il,ic}=Matrex.size(input)
-    {tl,tc}=Matrex.size(target)
+    {_il,ic}=Matrex.size(input)
+    {_tl,tc}=Matrex.size(target)
     inputs = Matrex.submatrix(input,((n-1)*slice)+1..(slice*n),1..ic)
     targets = Matrex.submatrix(target,((n-1)*slice)+1..(slice*n),1..tc)
     task = WL.send_job({size,slice,inputs,nn,targets,lr})

@@ -1,25 +1,59 @@
 defmodule DL do
   #import Nx.Defn
  # Nx.default_backend(Torchx)
+ def mean_rows(tensor) do
+   {l,c} = Matrex.size(tensor)
+   mean_rows_para(tensor,l,c,[])
+ end
+ def mean_rows_para(tensor,1,c,l) do
+   m1 = Matrex.sum(Matrex.row(tensor,1))/c
+   Matrex.to_column(Matrex.new([[m1|l]]))
+ end
+ def mean_rows_para(tensor,n,c,l) do
+  mn = Matrex.sum(Matrex.row(tensor,n))/c
+  mean_rows_para(tensor,n-1,c,[mn|l])
+end
  def error_grad(target,input) do
   Matrex.subtract(target,input)
+  #DL.mean_rows(Matrex.square(Matrex.subtract(target,input)))
  end
  def error_nn(target,input) do
    Matrex.sum(Matrex.square(Matrex.subtract(target,input)))
  end
+ def mse(target,input) do
+  {_l,c} = Matrex.size(target)
+  #Matrex.sum(Matrex.square(Matrex.subtract(target,input)))
+   Matrex.sum(Matrex.square(Matrex.subtract(target,input)))/c
+  #IO.inspect r
+ # np.mean(np.power(y_true-y_pred, 2))
+ end
+ def mse_prime(target,input) do
+  #return 2 * (y_pred - y_true) / y_pred.size
+  {_l,c} = Matrex.size(target)
+  #Matrex.divide(Matrex.multiply(-2,Matrex.subtract(target,input)),c)
+  Matrex.multiply(2,Matrex.divide(Matrex.subtract(target,input),c))
+ end
+ def softmax(x) do
+  temp = Matrex.apply(x,:exp)
+  Matrex.divide(temp,Matrex.sum(temp))
+ end
+ def softmax2deriv(output) do
+   {_l,c} = Matrex.size(output)
+   1/c
+ end
  def relu(x) do
     Matrex.apply(x,fn(n)-> if (n>0) do n else 0 end end)
-  end
-  def relu2deriv(output) do
+ end
+ def relu2deriv(output) do
     Matrex.apply(output,fn(n)-> if (n>0) do 1 else 0 end end)
     #Nx.greater(output,0)
-  end
-  def sigmoid(x) do
+ end
+ def sigmoid(x) do
      Matrex.apply(x,:sigmoid)
-  end
-  def sig2deriv(output) do
+ end
+ def sig2deriv(output) do
     Matrex.multiply(output,Matrex.subtract(1,output))
-  end
+ end
   def tanh(input) do
     Matrex.apply(input,:tanh)
 
@@ -40,8 +74,10 @@ defmodule DL do
     Matrex.add(weights,Matrex.multiply(lr,Matrex.dot(Matrex.transpose(layer),der)))
   end
   def fitWeights(w) do
-    r=Matrex.subtract(Matrex.multiply(0.02,w),0.01)
+    #r=Matrex.subtract(Matrex.multiply(0.02,w),0.01)
     #r=Matrex.subtract(Matrex.multiply(2,w),1)
+    r=Matrex.subtract(Matrex.multiply(0.2,w),0.1)
+   # r=Matrex.subtract(Matrex.multiply(1,w),0.5)
     #IO.inspect r
     r
   end
@@ -250,6 +286,11 @@ defmodule DL do
     nm = remove_last(model)
     nm ++ [{&DL.relu/1 ,&DL.relu2deriv/1}]++[lsize]
   end
+  def softmax_layer(model) do
+    lsize = List.last(model)
+    nm = remove_last(model)
+    nm ++ [{&DL.softmax/1 ,&DL.softmax2deriv/1}]++[lsize]
+  end
   def sigmoid_layer(model) do
     lsize = List.last(model)
     nm = remove_last(model)
@@ -263,6 +304,10 @@ defmodule DL do
   def error(model) do
     nm = remove_last(model)
     nm ++ [{&DL.error_grad/2,&DL.error_nn/2}]
+   end
+  def mse_layer(model) do
+    nm = remove_last(model)
+    nm ++ [{&DL.mse_prime/2,&DL.mse/2}]
    end
   def dropout(model,p) do
     lsize = List.last(model)

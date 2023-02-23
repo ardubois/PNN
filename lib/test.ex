@@ -106,14 +106,79 @@ IO.puts "finish loading"
 
 nn =
       DL.input(784)
-      |> DL.dense(100)
-      |> DL.tanh_layer()
+      #|> DL.dense(200)
+      #|> DL.sigmoid_layer()
+    #  |
+      |> DL.dense(700)
+      |> DL.relu_layer()
       |> DL.dropout(0.5)
+      |> DL.dense(200)
+      |> DL.relu_layer()
       |> DL.dense(10)
-    #  |> DL.sigmoid_layer()
+   #   |> DL.softmax_layer()
       |> DL.error()
 
 
+nn =
+      DL.input(784)
+     |> DL.dense(200)
+     |> DL.relu_layer()
+     |> DL.dropout(0.5)
+     |> DL.dense(100)
+     |> DL.relu_layer()
+     |> DL.dense(10)
+         #   |> DL.softmax_layer()
+     |> DL.error()
+#best:
+nn =
+      DL.input(784)
+     |> DL.dense(512)
+     |> DL.relu_layer()
+     |> DL.dropout(0.5)
+     |> DL.dense(256)
+     |> DL.relu_layer()
+     |> DL.dropout(0.25)
+     |> DL.dense(10)
+         #   |> DL.softmax_layer()
+     |> DL.error()
+
+
+nn =
+        DL.input(784)
+       |> DL.dense(512)
+       |> DL.relu_layer()
+       #|> DL.dropout(0.5)
+       |> DL.dense(256)
+       |> DL.relu_layer()
+       |> DL.dropout(0.5)
+       |> DL.dense(10)
+       |> DL.softmax_layer()
+       |> DL.mse_layer()
+nn =
+        DL.input(784)
+       |> DL.dense(256)
+       |> DL.relu_layer()
+       #|> DL.dropout(0.5)
+       |> DL.dense(256)
+       |> DL.relu_layer()
+       #|> DL.dropout(0.5)
+       |> DL.dense(10)
+           #   |> DL.softmax_layer()
+       |> DL.mse_layer()
+
+nn =
+        DL.input(784)
+       |> DL.dense(512)
+       |> DL.relu_layer()
+       #|> DL.dropout(0.5)
+       |> DL.dense(256)
+       |> DL.relu_layer()
+      # |> DL.dropout(0.5)
+      #|> DL.dense(128)
+      # |> DL.relu_layer()
+       |> DL.dense(10)
+           #   |> DL.softmax_layer()
+       |> DL.mse_layer()
 #IO.inspect (nn)
 #raise "hell"
 
@@ -125,12 +190,13 @@ WL.testSystem(10)
 
 #{time,{newNet,errorFinal,correct} } = :timer.tc(&NN.loop/6,[10,100,images,nn,labels,alpha])
 
-#{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[300,600,10,10,images,nn,labels,alpha])
+#{time,{newnet,errorFinal,correct} } = :timer.tc(&PNN.loopBatch/8,[3,450,32,4,images,nn,labels,alpha])
 
+{time,{newnet,_error,_acc}} = :timer.tc(&DL.loop_batch/7,[30,230,256,images, nn, labels, alpha])
 
-#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[10,600,100,images, nn, labels, alpha])
+#{time,{newnet,error,acc}} = :timer.tc(&NN.loop_batch/7,[2,600,100,images, nn, labels, alpha])
 
-{time,{newnet,error,acc}} = :timer.tc(&DL.loop_batch/7,[300,100,100,images, nn, labels, alpha])
+#{time,{newnet,_error,_acc}} = :timer.tc(&DL.loop_batch/7,[3,1875,32,images, nn, labels, alpha])
 
 #{time,{newNet,wd,errorFinal,correct} } = :timer.tc(&NN.trainPBatch/6,[10,100,images,nn,labels,alpha])
 
