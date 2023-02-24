@@ -27,10 +27,16 @@ train_images= IO.binread(file1,:all)
 train_labels = IO.binread(file2,:all)
 
 
-
+{:ok,file3}= File.open("t10k-images-idx3-ubyte.gz", [:read, :compressed,:raw])
+test_images= IO.binread(file3,:all)
+{:ok,file4}= File.open("t10k-labels-idx1-ubyte.gz", [:read, :compressed,:raw])
+test_labels = IO.binread(file4,:all)
 
 <<_::32, n_images::32, n_rows::32, n_cols::32, images::binary>> = train_images
 <<_::32, n_labels::32, labels::binary>> = train_labels
+
+<<_::32, n_timages::32, n_trows::32, n_tcols::32, timages::binary>> = test_images
+<<_::32, n_tlabels::32, tlabels::binary>> = test_labels
 #targets_ = Nx.to_batched(Nx.from_numpy("labelsMNIST.npy"),1)
 #images_ = Nx.to_batched(Nx.from_numpy("imagesMNIST.npy"),1)
 
@@ -42,14 +48,28 @@ images =
   |> Nx.from_binary({:u, 8})
   |> Nx.reshape({n_images, 1, n_rows, n_cols}, names: [:images, :channels, :height, :width])
   |> Nx.divide(255)
-  |> Nx.to_batched(512)
+  |> Nx.to_batched(64)
 
 targets =
     labels
     |> Nx.from_binary({:u, 8})
     |> Nx.new_axis(-1)
     |> Nx.equal(Nx.tensor(Enum.to_list(0..9)))
-    |> Nx.to_batched(512)
+    |> Nx.to_batched(64)
+
+timages =
+    timages
+    |> Nx.from_binary({:u, 8})
+    |> Nx.reshape({n_timages, 1, n_trows, n_tcols}, names: [:images, :channels, :height, :width])
+    |> Nx.divide(255)
+    |> Nx.to_batched(1)
+
+ttargets =
+    tlabels
+    |> Nx.from_binary({:u, 8})
+    |> Nx.new_axis(-1)
+    |> Nx.equal(Nx.tensor(Enum.to_list(0..9)))
+    |> Nx.to_batched(1)
 #targets = targets[0..4999]
 
 #targets = Nx.as_type(targets,:u64)
@@ -66,7 +86,7 @@ model =
   |> Axon.relu()
   #|> Axon.dense(128, activation: :relu)
  # |> Axon.dropout(rate: 0.5)
-  |> Axon.dense(10)
+   |> Axon.dense(10)
 
 
 params =
@@ -77,7 +97,7 @@ params =
     |> Axon.Loop.metric(:accuracy, "Accuracy")
     #|> Axon.Loop.run(Stream.zip(images, targets), %{}, epochs: 10)
 
-params = Axon.Loop.run(params,Stream.zip(images, targets), %{}, epochs: 10)
+params = Axon.Loop.run(params,Stream.zip(images, targets), %{}, epochs: 20)
 
 
 
@@ -85,12 +105,40 @@ params = Axon.Loop.run(params,Stream.zip(images, targets), %{}, epochs: 10)
 
 #IO.puts ("time: #{time/(1_000_000)}")
 
-#first_batch = Enum.at(images, 0)
+defmodule TestAxon do
+  def test(0,input,target,model,params,correct) do
+    i1 = Enum.at(input, 0)
+    output = Axon.predict(model, params, i1)
+    nnresp = Nx.to_number((Nx.argmax(output, axis: 1))[0])
+    tresp = Nx.to_number((Nx.argmax(Enum.at(target,0), axis: 1))[0])
+    correct2 = if (nnresp == tresp) do 1 else 0 end
+    correct+correct2
+  end
+  def test(n,input,target,model,params,correct) do
+    i1 = Enum.at(input, n)
+    output = Axon.predict(model, params, i1)
+    nnresp = Nx.to_number((Nx.argmax(output, axis: 1))[0])
+    tresp = Nx.to_number((Nx.argmax(Enum.at(target,n), axis: 1))[0])
+    correct2 = if (nnresp == tresp) do 1 else 0 end
+    test(n-1,input,target,model,params,correct+correct2)
+  end
+  def run_test(size,input,target,model,params)do
+    correct = test(size-1,input,target,model,params,0)
+    IO.puts ("Test accuracy: #{ correct/size}")
+  end
+end
 
-#IO.inspect (first_batch)
+
+#TestAxon.run_test(10000,timages,ttargets,model,params)
+
+#first_batch = Enum.at(timages, 210)
 
 #output = Axon.predict(model, params, first_batch)
 
-#IO.inspect output
+#nnresp = Nx.to_number((Nx.argmax(output, axis: 1))[0])
 
-#IO.inspect( Nx.argmax(output, axis: 1))
+#tresp = Nx.to_number((Nx.argmax(Enum.at(ttargets,210), axis: 1))[0])
+
+#IO.inspect nnresp
+#IO.inspect tresp
+#if (nnresp == tresp) do IO.puts True else IO.puts False end
